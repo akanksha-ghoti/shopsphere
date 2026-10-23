@@ -1,1 +1,27 @@
-{"name":"shopsphere-server","version":"1.0.0","description":"ShopSphere Express backend","main":"src/index.js","type":"commonjs","scripts":{"start":"node src/index.js","dev":"nodemon src/index.js"},"keywords":["shopsphere","express","api"],"author":"","license":"ISC","dependencies":{"cors":"^2.8.6","dotenv":"^18.0.8","express":"^5.3.0","mongoose":"^9.11.2"},"devDependencies":{"nodemon":"^3.1.14"}}
+{
+  "name": "shopsphere-server",
+  "version": "1.0.0",
+  "description": "ShopSphere Express backend",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "shopsphere",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "mongoose": "^9.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
