@@ -1,0 +1,17 @@
+{
+"env": {
+"node": true,
+"es2022": true,
+"jest": true
+},
+"extends": [],
+"parserOptions": {
+"ecmaVersion": "latest"
+},
+"rules": {
+"no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+"no-undef": "error",
+"semi": ["error", "always"],
+"quotes": ["error", "single", { "avoidEscape": true }]
+}
+}
