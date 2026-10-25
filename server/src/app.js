@@ -1,26 +1,24 @@
 const express = require('express');
-const cors = require('cors');
 
 const healthRoutes = require('./routes/health.routes');
 const pingRoutes = require('./routes/ping.routes');
+const validationRoutes = require('./routes/validation.routes');
+
+const logger = require('./middleware/logger');
+const corsMiddleware = require('./config/cors');
+
 const { notFound, errorHandler } = require('./middleware/error');
 
 const app = express();
 
-app.use(cors());
+app.use(corsMiddleware);
 app.use(express.json());
+app.use(logger);
 
-// Request logging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
-  next();
-});
-
-// API routes
 app.use('/api/health', healthRoutes);
 app.use('/api/ping', pingRoutes);
+app.use('/api/validation', validationRoutes);
 
-// Error handling
 app.use(notFound);
 app.use(errorHandler);
 
