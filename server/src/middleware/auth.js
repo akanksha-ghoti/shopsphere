@@ -28,6 +28,7 @@ const decodedToken = await verifyIdToken(idToken);
 // Never trust a role supplied by the client.
 req.user = {
   uid: decodedToken.uid,
+  email: decodedToken.email,
   role: 'user',
 };
 
