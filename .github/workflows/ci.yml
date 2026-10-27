@@ -4,17 +4,18 @@ on:
 push:
 branches:
 - main
-- 'day-04/**'
+- 'day-04/'
+- 'day-05/'
 pull_request:
 branches:
 - main
-- 'day-04/**'
+- 'day-04/'
+- 'day-05/'
 
 jobs:
 backend-quality:
 runs-on: ubuntu-latest
 
-```
 defaults:
   run:
     working-directory: server
@@ -38,4 +39,3 @@ steps:
 
   - name: Run tests
     run: npm test
-```
