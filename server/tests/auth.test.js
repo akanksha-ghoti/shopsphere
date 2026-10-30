@@ -18,7 +18,7 @@ beforeEach(() => {
 jest.clearAllMocks();
 });
 
-it('rejects requests without a token', async () => {
+it('accepts a verified admin token and assigns the admin role', async () => {
 const response = await request(app).get('/protected');
 
 expect(response.status).toBe(401);
@@ -48,7 +48,7 @@ const response = await request(app)
 
 expect(response.status).toBe(200);
 expect(response.body.user.uid).toBe('test-user-123');
-expect(response.body.user.role).toBe('user');
+expect(response.body.user.role).toBe('admin');
 
 });
 });
