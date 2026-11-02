@@ -7,6 +7,7 @@ import {
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import Products from './pages/Products';
 
 import {
   ProtectedRoute,
@@ -21,6 +22,13 @@ function Home() {
       <h1 className="mb-4 text-3xl font-bold">ShopSphere</h1>
 
       <p>Welcome, {user?.displayName || user?.email}</p>
+
+      <Link
+        to="/products"
+        className="mt-5 inline-block rounded-lg bg-indigo-600 px-5 py-2 text-white hover:bg-indigo-700"
+      >
+        Browse products
+      </Link>
 
       <button
         onClick={logout}
@@ -45,6 +53,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/products" element={<Products />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />

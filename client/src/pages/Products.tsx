@@ -1,0 +1,405 @@
+import axios from 'axios';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  getAllCategories,
+  getProducts,
+  type Category,
+  type PaginationMetadata,
+  type Product,
+} from '../api/products';
+import ProductCard from '../components/ProductCard';
+
+const PAGE_SIZE = 8;
+
+function getCatalogError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      return 'We could not connect to the catalog. Check your connection and try again.';
+    }
+
+    if (error.response.status === 404) {
+      return 'The catalog could not be found. Please try again later.';
+    }
+
+    if (error.response.status >= 500) {
+      return 'The catalog is temporarily unavailable. Please try again shortly.';
+    }
+  }
+
+  return 'We could not load the catalog. Please try again.';
+}
+
+function ProductSkeleton() {
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+      aria-hidden="true"
+    >
+      <div className="aspect-square animate-pulse bg-slate-200" />
+      <div className="space-y-3 p-4">
+        <div className="h-3 w-1/3 animate-pulse rounded bg-slate-200" />
+        <div className="h-5 w-3/4 animate-pulse rounded bg-slate-200" />
+        <div className="h-5 w-1/2 animate-pulse rounded bg-slate-200" />
+      </div>
+    </div>
+  );
+}
+
+export default function Products() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [pagination, setPagination] = useState<PaginationMetadata | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [productsError, setProductsError] = useState('');
+  const [categoriesError, setCategoriesError] = useState('');
+  const [productsRetry, setProductsRetry] = useState(0);
+  const [categoriesRetry, setCategoriesRetry] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadCategories() {
+      setLoadingCategories(true);
+      setCategoriesError('');
+
+      try {
+        const result = await getAllCategories(controller.signal);
+        setCategories(result);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setCategoriesError(getCatalogError(error));
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingCategories(false);
+        }
+      }
+    }
+
+    void loadCategories();
+
+    return () => controller.abort();
+  }, [categoriesRetry]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProducts() {
+      setLoadingProducts(true);
+      setProductsError('');
+
+      try {
+        const result = await getProducts(
+          {
+            page,
+            limit: PAGE_SIZE,
+            ...(search ? { search } : {}),
+            ...(selectedCategory ? { category: selectedCategory } : {}),
+          },
+          controller.signal,
+        );
+
+        setProducts(result.data);
+        setPagination(result.pagination);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setProductsError(getCatalogError(error));
+          setProducts([]);
+          setPagination(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingProducts(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => controller.abort();
+  }, [page, search, selectedCategory, productsRetry]);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPage(1);
+    setSearch(searchInput.trim());
+  }
+
+  function selectCategory(categoryId: string) {
+    setSelectedCategory(categoryId);
+    setPage(1);
+  }
+
+  function categoryFor(product: Product): string | undefined {
+    if (product.category && typeof product.category === 'object') {
+      return product.category.name;
+    }
+
+    if (typeof product.category === 'string') {
+      return categories.find((category) => category._id === product.category)
+        ?.name;
+    }
+
+    return undefined;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-left text-slate-800">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            to="/products"
+            className="text-xl font-extrabold tracking-tight text-indigo-700 sm:text-2xl"
+          >
+            ShopSphere
+          </Link>
+          <Link
+            to="/login"
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-indigo-700"
+          >
+            Sign in
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <section className="mb-8 flex flex-col justify-between gap-6 sm:mb-10 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-indigo-600">
+              Find your next favorite
+            </p>
+            <h1 className="m-0 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              Explore our products
+            </h1>
+            <p className="mt-3 text-base text-slate-600">
+              Browse the latest picks across the ShopSphere catalog.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleSearch}
+            role="search"
+            className="flex w-full max-w-md items-center gap-2 rounded-xl border border-slate-300 bg-white p-2 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="ml-2 h-5 w-5 shrink-0 text-slate-400"
+              fill="none"
+            >
+              <circle
+                cx="10.8"
+                cy="10.8"
+                r="6.8"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+              <path
+                d="m16 16 4 4"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="1.8"
+              />
+            </svg>
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search products"
+              aria-label="Search products"
+              className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Search
+            </button>
+          </form>
+        </section>
+
+        <section aria-label="Product categories" className="mb-8">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="m-0 text-lg font-bold text-slate-900">Categories</h2>
+            {loadingCategories && (
+              <span className="text-sm text-slate-500" role="status">
+                Loading categories…
+              </span>
+            )}
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button
+              type="button"
+              aria-pressed={!selectedCategory}
+              onClick={() => selectCategory('')}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                !selectedCategory
+                  ? 'border-indigo-600 bg-indigo-600 text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-700'
+              }`}
+            >
+              All Products
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category._id}
+                type="button"
+                aria-pressed={selectedCategory === category._id}
+                onClick={() => selectCategory(category._id)}
+                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  selectedCategory === category._id
+                    ? 'border-indigo-600 bg-indigo-600 text-white'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-300 hover:text-indigo-700'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+
+          {categoriesError && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-rose-700">
+              <p>{categoriesError}</p>
+              <button
+                type="button"
+                onClick={() => setCategoriesRetry((retry) => retry + 1)}
+                className="font-semibold underline underline-offset-2"
+              >
+                Retry categories
+              </button>
+            </div>
+          )}
+          {!loadingCategories && !categoriesError && categories.length === 0 && (
+            <p className="mt-3 text-sm text-slate-500">
+              No categories are available yet. You can still browse all products.
+            </p>
+          )}
+        </section>
+
+        <section aria-label="Products">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="m-0 text-xl font-bold text-slate-900">
+              {selectedCategory
+                ? categories.find((category) => category._id === selectedCategory)
+                    ?.name || 'Filtered products'
+                : 'All products'}
+            </h2>
+            {!loadingProducts && pagination && (
+              <p className="text-sm text-slate-500">
+                {pagination.total} {pagination.total === 1 ? 'product' : 'products'}
+              </p>
+            )}
+          </div>
+
+          {productsError ? (
+            <div
+              className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-10 text-center"
+              role="alert"
+            >
+              <h3 className="text-lg font-bold text-slate-900">
+                Products could not be loaded
+              </h3>
+              <p className="mt-2 text-sm text-slate-600">{productsError}</p>
+              <button
+                type="button"
+                onClick={() => setProductsRetry((retry) => retry + 1)}
+                className="mt-5 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+              >
+                Retry
+              </button>
+            </div>
+          ) : loadingProducts ? (
+            <div
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              role="status"
+              aria-label="Loading products"
+            >
+              {Array.from({ length: PAGE_SIZE }, (_, index) => (
+                <ProductSkeleton key={index} />
+              ))}
+            </div>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  categoryName={categoryFor(product)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+              <h3 className="text-lg font-bold text-slate-900">
+                {search && selectedCategory
+                  ? 'No products match your search in this category'
+                  : search
+                    ? 'No products match your search'
+                    : selectedCategory
+                      ? 'No products in this category yet'
+                      : 'No products available yet'}
+              </h3>
+              <p className="mt-2 text-sm text-slate-600">
+                {search
+                  ? 'Try another search or clear your filters.'
+                  : 'Please check back soon for new products.'}
+              </p>
+              {(search || selectedCategory) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('');
+                    setSearchInput('');
+                    setSelectedCategory('');
+                    setPage(1);
+                  }}
+                  className="mt-5 font-semibold text-indigo-700 hover:text-indigo-900"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          )}
+
+          {!productsError && !loadingProducts && pagination && (
+            <nav
+              aria-label="Product pagination"
+              className="mt-8 flex items-center justify-center gap-4"
+            >
+              <button
+                type="button"
+                onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                disabled={pagination.page <= 1}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <span className="text-sm font-medium text-slate-600" aria-live="polite">
+                Page {pagination.page} of {Math.max(pagination.totalPages, 1)}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setPage((currentPage) =>
+                    Math.min(pagination.totalPages, currentPage + 1),
+                  )
+                }
+                disabled={pagination.page >= pagination.totalPages}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+              </button>
+            </nav>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
