@@ -96,7 +96,7 @@
       "name": "Search Products",
       "request": {
         "method": "GET",
-        "url": "{{baseUrl}}/products?search=phone"
+        "url": "{{baseUrl}}/products?q=phone"
       },
       "event": [
         {
@@ -108,6 +108,31 @@
               "    const response = pm.response.json();",
               "    pm.expect(response.success).to.eql(true);",
               "    pm.expect(response.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filter and Sort Products",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/products?q=phone&category={{categoryId}}&minPrice=100&maxPrice=500&inStock=true&sort=price_asc&page=1&limit=10"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Filtered product list and pagination are returned', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.eql(true);",
+              "    pm.expect(response.data).to.be.an('array');",
+              "    pm.expect(response.pagination).to.have.property('page', 1);",
+              "    pm.expect(response.pagination).to.have.property('totalPages');",
               "});"
             ],
             "type": "text/javascript"

@@ -75,7 +75,7 @@ describe('Product variant schema', () => {
     });
   });
 
-  it('defines a unique sparse SKU index across product documents', () => {
+  it('defines a unique partial SKU index across product documents', () => {
     const skuIndex = Product.schema.indexes().find(([keys]) => keys['variants.sku'] === 1);
 
     expect(skuIndex).toBeDefined();
@@ -84,5 +84,35 @@ describe('Product variant schema', () => {
       partialFilterExpression: { 'variants.sku': { $type: 'string' } },
       name: 'variants_sku_unique',
     });
+  });
+
+  it('defines focused indexes for listing filter and sort patterns', () => {
+    const indexes = Product.schema.indexes().map(([keys, options]) => ({
+      keys,
+      name: options.name,
+    }));
+
+    expect(indexes).toEqual(
+      expect.arrayContaining([
+        { keys: { category: 1, price: 1, _id: 1 }, name: 'category_price_id' },
+        { keys: { price: 1, _id: 1 }, name: 'price_id' },
+        {
+          keys: { category: 1, createdAt: -1, _id: -1 },
+          name: 'category_createdAt_id',
+        },
+        { keys: { createdAt: -1, _id: -1 }, name: 'createdAt_id' },
+        { keys: { name: 1, _id: 1 }, name: 'name_id' },
+        { keys: { stock: 1 }, name: 'stock' },
+        { keys: { 'variants.stock': 1 }, name: 'variants_stock' },
+      ]),
+    );
+    expect(indexes).toEqual(
+      expect.arrayContaining([
+        {
+          keys: { name: 'text', description: 'text' },
+          name: undefined,
+        },
+      ]),
+    );
   });
 });

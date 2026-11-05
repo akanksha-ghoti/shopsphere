@@ -5,6 +5,7 @@ const Category = require('../models/Category');
 
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
+const { buildProductQuery, buildProductSort } = require('../utils/buildProductQuery');
 
 function forwardProductError(error, next) {
   if (error.code === 11000) {
@@ -92,24 +93,15 @@ async function createProduct(req, res, next) {
 // GET /api/products
 async function getProducts(req, res, next) {
   try {
-    const { page = 1, limit = 10, search, category } = req.validatedData.query;
-
-    const filter = {};
-
-    if (search) {
-      filter.$text = { $search: search };
-    }
-
-    if (category) {
-      filter.category = category;
-    }
+    const { page = 1, limit = 10, sort = 'newest', ...productFilters } = req.validatedData.query;
+    const filter = buildProductQuery(productFilters);
 
     const skip = (page - 1) * limit;
 
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate('category', 'name slug')
-        .sort({ createdAt: -1 })
+        .sort(buildProductSort(sort))
         .skip(skip)
         .limit(limit),
 

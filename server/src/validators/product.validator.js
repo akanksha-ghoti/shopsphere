@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { listProductSchema } = require('./productQuery.validator');
 
 const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid category ID');
 
@@ -34,15 +35,6 @@ const updateProductSchema = z.object({
 const getProductSchema = z.object({
   params: z.object({
     id: objectIdSchema,
-  }),
-});
-
-const listProductSchema = z.object({
-  query: z.object({
-    page: z.coerce.number().int().min(1).optional(),
-    limit: z.coerce.number().int().min(1).max(100).optional(),
-    search: z.string().optional(),
-    category: objectIdSchema.optional(),
   }),
 });
 

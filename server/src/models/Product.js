@@ -138,5 +138,12 @@ productSchema.index(
     name: 'variants_sku_unique',
   },
 );
+productSchema.index({ category: 1, price: 1, _id: 1 }, { name: 'category_price_id' });
+productSchema.index({ price: 1, _id: 1 }, { name: 'price_id' });
+productSchema.index({ category: 1, createdAt: -1, _id: -1 }, { name: 'category_createdAt_id' });
+productSchema.index({ createdAt: -1, _id: -1 }, { name: 'createdAt_id' });
+productSchema.index({ name: 1, _id: 1 }, { name: 'name_id' });
+productSchema.index({ stock: 1 }, { name: 'stock' });
+productSchema.index({ 'variants.stock': 1 }, { name: 'variants_stock' });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -49,6 +49,8 @@ function mockProductList(products) {
   const sort = jest.fn().mockReturnValue({ skip });
   const populate = jest.fn().mockReturnValue({ sort });
   Product.find.mockReturnValue({ populate });
+
+  return { limit, skip, sort, populate };
 }
 
 describe('Product API', () => {
@@ -95,7 +97,7 @@ describe('Product API', () => {
   });
 
   it('lists products with pagination metadata', async () => {
-    mockProductList([makeProduct()]);
+    const query = mockProductList([makeProduct()]);
     Product.countDocuments.mockResolvedValue(21);
 
     const response = await request(app).get('/api/products?page=2&limit=10');
@@ -109,6 +111,8 @@ describe('Product API', () => {
       limit: 10,
       totalPages: 3,
     });
+    expect(query.sort).toHaveBeenCalledWith({ createdAt: -1, _id: -1 });
+    expect(query.skip).toHaveBeenCalledWith(10);
   });
 
   it('searches products by text', async () => {
@@ -122,6 +126,67 @@ describe('Product API', () => {
       $text: { $search: 'wireless mouse' },
     });
     expect(response.body.success).toBe(true);
+  });
+
+  it('supports q while combining text search, category, price, and stock filters', async () => {
+    const queryChain = mockProductList([makeProduct()]);
+    Product.countDocuments.mockResolvedValue(1);
+
+    const response = await request(app).get('/api/products').query({
+      q: 'phone',
+      category: categoryId,
+      minPrice: 100,
+      maxPrice: 500,
+      inStock: 'true',
+      sort: 'price_asc',
+      page: 2,
+      limit: 5,
+    });
+
+    expect(response.status).toBe(200);
+    expect(Product.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        $text: { $search: 'phone' },
+        category: categoryId,
+        price: { $gte: 100, $lte: 500 },
+        $or: expect.any(Array),
+      }),
+    );
+    expect(Product.countDocuments).toHaveBeenCalledWith(Product.find.mock.calls[0][0]);
+    expect(queryChain.sort).toHaveBeenCalledWith({ price: 1, _id: 1 });
+    expect(queryChain.skip).toHaveBeenCalledWith(5);
+    expect(queryChain.limit).toHaveBeenCalledWith(5);
+  });
+
+  it('accepts inStock=false and sorts by oldest first', async () => {
+    const queryChain = mockProductList([]);
+    Product.countDocuments.mockResolvedValue(0);
+
+    const response = await request(app)
+      .get('/api/products')
+      .query({ inStock: 'false', sort: 'oldest' });
+
+    expect(response.status).toBe(200);
+    expect(Product.find).toHaveBeenCalledWith({
+      $or: expect.any(Array),
+    });
+    expect(queryChain.sort).toHaveBeenCalledWith({ createdAt: 1, _id: 1 });
+  });
+
+  it.each([
+    [{ category: 'invalid' }],
+    [{ minPrice: 'invalid' }],
+    [{ maxPrice: 'Infinity' }],
+    [{ minPrice: '200', maxPrice: '100' }],
+    [{ inStock: '1' }],
+    [{ sort: 'unsupported' }],
+    [{ category: [categoryId, categoryId] }],
+  ])('rejects invalid product listing queries: %o', async (query) => {
+    const response = await request(app).get('/api/products').query(query);
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(Product.find).not.toHaveBeenCalled();
   });
 
   it('filters products by category', async () => {
