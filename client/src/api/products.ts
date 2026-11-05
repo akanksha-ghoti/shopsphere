@@ -1,4 +1,4 @@
-import api from '../services/api';
+import api from "../services/api";
 
 export interface Category {
   _id: string;
@@ -33,18 +33,27 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
   pagination: PaginationMetadata;
 }
 
+export type ProductSort =
+  "price_asc" | "price_desc" | "newest" | "oldest" | "name_asc" | "name_desc";
+
 export interface ProductQuery {
   page: number;
   limit: number;
+  q?: string;
+  /** @deprecated Use q for new product search requests. */
   search?: string;
   category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: ProductSort;
 }
 
 export async function getProducts(
   query: ProductQuery,
   signal?: AbortSignal,
 ): Promise<PaginatedResponse<Product[]>> {
-  const response = await api.get<PaginatedResponse<Product[]>>('/products', {
+  const response = await api.get<PaginatedResponse<Product[]>>("/products", {
     params: query,
     signal,
   });
@@ -68,7 +77,7 @@ export async function getCategories(
   page: number,
   signal?: AbortSignal,
 ): Promise<PaginatedResponse<Category[]>> {
-  const response = await api.get<PaginatedResponse<Category[]>>('/categories', {
+  const response = await api.get<PaginatedResponse<Category[]>>("/categories", {
     params: { page, limit: 100 },
     signal,
   });
@@ -76,7 +85,9 @@ export async function getCategories(
   return response.data;
 }
 
-export async function getAllCategories(signal?: AbortSignal): Promise<Category[]> {
+export async function getAllCategories(
+  signal?: AbortSignal,
+): Promise<Category[]> {
   const firstPage = await getCategories(1, signal);
   const categories = [...firstPage.data];
 
