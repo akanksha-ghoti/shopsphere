@@ -1,25 +1,22 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Link,
-} from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import Products from './pages/Products';
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import Login from "./pages/Login";
+import Products from "./pages/Products";
+import Cart from "./pages/Cart";
+import ProductDetails from "./pages/ProductDetails";
+import StoreHeader from "./components/StoreHeader";
 
-import {
-  ProtectedRoute,
-  AdminRoute,
-} from './routes/ProtectedRoute';
+import { ProtectedRoute, AdminRoute } from "./routes/ProtectedRoute";
 
 function Home() {
   const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-      <h1 className="mb-4 text-3xl font-bold">ShopSphere</h1>
+      <StoreHeader />
+      <h1 className="mb-4 mt-8 text-3xl font-bold">ShopSphere</h1>
 
       <p>Welcome, {user?.displayName || user?.email}</p>
 
@@ -53,6 +50,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/products/:id" element={<ProductDetails />} />
       <Route path="/products" element={<Products />} />
 
       <Route element={<ProtectedRoute />}>
@@ -69,14 +68,20 @@ function AppRoutes() {
 }
 
 function NavigateHome() {
-  return <Link to="/" className="p-10 text-blue-600">Go Home</Link>;
+  return (
+    <Link to="/" className="p-10 text-blue-600">
+      Go Home
+    </Link>
+  );
 }
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

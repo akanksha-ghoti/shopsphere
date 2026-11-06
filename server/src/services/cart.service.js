@@ -102,6 +102,7 @@ async function findOrCreateCart(userId) {
 async function calculateCartTotals(cart) {
   let subtotal = 0;
   let itemCount = 0;
+  const items = [];
 
   for (const item of cart.items) {
     const productId = String(item.product?._id || item.product);
@@ -114,7 +115,7 @@ async function calculateCartTotals(cart) {
     }
 
     const product = await getProduct(productId);
-    const { price, stock } = getItemAvailability(product, item.variant);
+    const { price, stock, variant } = getItemAvailability(product, item.variant);
     assertQuantity(item.quantity);
     if (item.quantity > stock) {
       throw createCartError(
@@ -124,11 +125,33 @@ async function calculateCartTotals(cart) {
       );
     }
 
-    subtotal += price * item.quantity;
     itemCount += item.quantity;
+    const unitPrice = Math.round((price + Number.EPSILON) * 100) / 100;
+    subtotal += unitPrice * item.quantity;
+    items.push({
+      _id: item._id,
+      product: {
+        _id: product._id,
+        name: product.name,
+        slug: product.slug,
+        images: product.images,
+      },
+      variant: variant
+        ? {
+            _id: variant._id,
+            size: variant.size,
+            color: variant.color,
+            sku: variant.sku,
+          }
+        : null,
+      quantity: item.quantity,
+      unitPrice,
+      lineTotal: Math.round((unitPrice * item.quantity + Number.EPSILON) * 100) / 100,
+    });
   }
 
   return {
+    items,
     subtotal: Math.round((subtotal + Number.EPSILON) * 100) / 100,
     itemCount,
   };
@@ -139,7 +162,7 @@ async function getCart(userId) {
   const cart = await Cart.findOne({ user: userId });
 
   if (!cart) {
-    return { cart: null, subtotal: 0, itemCount: 0 };
+    return { cart: null, items: [], subtotal: 0, itemCount: 0 };
   }
 
   return { cart, ...(await calculateCartTotals(cart)) };
@@ -254,12 +277,12 @@ async function clearCart(userId) {
 
   const cart = await Cart.findOne({ user: userId });
   if (!cart) {
-    return { cart: null, subtotal: 0, itemCount: 0 };
+    return { cart: null, items: [], subtotal: 0, itemCount: 0 };
   }
 
   cart.items = [];
   await cart.save();
-  return { cart, subtotal: 0, itemCount: 0 };
+  return { cart, items: [], subtotal: 0, itemCount: 0 };
 }
 
 module.exports = {

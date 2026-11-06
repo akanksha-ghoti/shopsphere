@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   getAllCategories,
   getProducts,
@@ -12,6 +11,7 @@ import {
 import FilterPanel from "../components/FilterPanel";
 import ProductCard from "../components/ProductCard";
 import SearchBar from "../components/SearchBar";
+import StoreHeader from "../components/StoreHeader";
 import { useProductQuery } from "../hooks/useProductQuery";
 
 const PAGE_SIZE = 8;
@@ -157,22 +157,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-left text-slate-800">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            to="/products"
-            className="text-xl font-extrabold tracking-tight text-indigo-700 sm:text-2xl"
-          >
-            ShopSphere
-          </Link>
-          <Link
-            to="/login"
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-indigo-700"
-          >
-            Sign in
-          </Link>
-        </div>
-      </header>
+      <StoreHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <section className="mb-8 flex flex-col justify-between gap-6 sm:mb-10 sm:flex-row sm:items-end">

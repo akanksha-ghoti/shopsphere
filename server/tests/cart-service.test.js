@@ -56,6 +56,13 @@ describe('Cart service', () => {
     expect(cart.items).toEqual([{ product: productId, variant: null, quantity: 2 }]);
     expect(cart.save).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ subtotal: 25, itemCount: 2 });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      product: { _id: productId },
+      quantity: 2,
+      unitPrice: 12.5,
+      lineTotal: 25,
+    });
   });
 
   it('merges a duplicate product/variant combination into one cart item', async () => {
@@ -99,7 +106,7 @@ describe('Cart service', () => {
 
     expect(cart.items).toEqual([]);
     expect(cart.save).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ cart, subtotal: 0, itemCount: 0 });
+    expect(result).toEqual({ cart, items: [], subtotal: 0, itemCount: 0 });
   });
 
   it('rejects quantities exceeding stock or the configured maximum', async () => {
@@ -203,6 +210,7 @@ describe('Cart service', () => {
     Cart.findOne.mockResolvedValue(null);
     await expect(cartService.getCart(userId)).resolves.toEqual({
       cart: null,
+      items: [],
       subtotal: 0,
       itemCount: 0,
     });

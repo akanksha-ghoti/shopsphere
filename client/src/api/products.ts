@@ -11,8 +11,20 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  stock?: number;
   images?: (string | null)[] | null;
   category?: Category | string | null;
+  variants?: ProductVariant[];
+}
+
+export interface ProductVariant {
+  _id: string;
+  size: string;
+  color: string;
+  sku: string;
+  price?: number;
+  effectivePrice?: number;
+  stock: number;
 }
 
 export interface PaginationMetadata {
