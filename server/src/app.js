@@ -7,6 +7,7 @@ const validationRoutes = require('./routes/validation.routes');
 const categoryRoutes = require('./routes/category.routes');
 const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
+const wishlistRoutes = require('./routes/wishlist.routes');
 
 const logger = require('./middleware/logger');
 const corsMiddleware = require('./config/cors');
@@ -27,6 +28,7 @@ app.use('/api/validation', validationRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // Error handling
 app.use(notFound);
