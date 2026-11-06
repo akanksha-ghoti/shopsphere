@@ -7,17 +7,22 @@ const cartItemSchema = new mongoose.Schema(
       ref: 'Product',
       required: true,
     },
+    variant: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
     quantity: {
       type: Number,
       required: true,
       min: 1,
+      max: 99,
       validate: {
         validator: Number.isInteger,
         message: 'Quantity must be an integer',
       },
     },
   },
-  { _id: false }
+  { timestamps: true },
 );
 
 const cartSchema = new mongoose.Schema(
@@ -33,7 +38,7 @@ const cartSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model('Cart', cartSchema);
