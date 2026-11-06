@@ -91,6 +91,17 @@ describe('Cart service', () => {
     expect(result).toMatchObject({ subtotal: 0, itemCount: 0 });
   });
 
+  it('clears all items from the authenticated user cart', async () => {
+    const cart = makeCart([{ product: productId, variant: null, quantity: 2 }]);
+    Cart.findOne.mockResolvedValue(cart);
+
+    const result = await cartService.clearCart(userId);
+
+    expect(cart.items).toEqual([]);
+    expect(cart.save).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ cart, subtotal: 0, itemCount: 0 });
+  });
+
   it('rejects quantities exceeding stock or the configured maximum', async () => {
     Cart.findOne.mockResolvedValue(null);
     Product.findById.mockResolvedValue(makeProduct({ stock: 2 }));

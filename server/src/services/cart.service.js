@@ -249,10 +249,24 @@ async function removeItem(userId, itemId) {
   return { cart, ...(await calculateCartTotals(cart)) };
 }
 
+async function clearCart(userId) {
+  assertObjectId(userId, 'User ID');
+
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    return { cart: null, subtotal: 0, itemCount: 0 };
+  }
+
+  cart.items = [];
+  await cart.save();
+  return { cart, subtotal: 0, itemCount: 0 };
+}
+
 module.exports = {
   MAX_ITEM_QUANTITY,
   addProduct,
   calculateCartTotals,
+  clearCart,
   getCart,
   removeItem,
   updateItemQuantity,

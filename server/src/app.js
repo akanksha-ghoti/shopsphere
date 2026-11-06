@@ -6,6 +6,7 @@ const pingRoutes = require('./routes/ping.routes');
 const validationRoutes = require('./routes/validation.routes');
 const categoryRoutes = require('./routes/category.routes');
 const productRoutes = require('./routes/product.routes');
+const cartRoutes = require('./routes/cart.routes');
 
 const logger = require('./middleware/logger');
 const corsMiddleware = require('./config/cors');
@@ -25,6 +26,7 @@ app.use('/api/ping', pingRoutes);
 app.use('/api/validation', validationRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Error handling
 app.use(notFound);
