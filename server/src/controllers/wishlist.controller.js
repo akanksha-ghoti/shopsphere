@@ -39,7 +39,7 @@ async function getWishlist(req, res, next) {
   try {
     const userId = await getAuthenticatedUserId(req);
     const wishlist = await Wishlist.find({ user: userId })
-      .populate('product', 'name slug price images')
+      .populate('product', 'name slug price stock images variants')
       .sort({ createdAt: -1, _id: -1 });
 
     return successResponse(res, wishlist, 'Wishlist retrieved successfully');
@@ -111,8 +111,9 @@ async function moveToCart(req, res, next) {
     const userId = await getAuthenticatedUserId(req);
     const { productId } = req.validatedData.params;
     assertProductId(productId);
+    const { variantId } = req.validatedData.body || {};
 
-    const result = await wishlistService.moveProductToCart(userId, productId);
+    const result = await wishlistService.moveProductToCart(userId, productId, variantId);
     return successResponse(res, result, 'Product moved to cart');
   } catch (error) {
     return next(error);

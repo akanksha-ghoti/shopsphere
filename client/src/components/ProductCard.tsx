@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "../api/products";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +20,11 @@ export default function ProductCard({
   categoryName,
 }: ProductCardProps) {
   const { addItem, busy } = useCart();
+  const {
+    isSaved,
+    toggleProduct,
+    busyProductId: wishlistBusyProductId,
+  } = useWishlist();
   const imageUrl = product.images?.find(
     (image): image is string =>
       typeof image === "string" && image.trim() !== "",
@@ -31,6 +37,19 @@ export default function ProductCard({
   const selectedVariant = variants.find(
     (variant) => variant._id === selectedVariantId,
   );
+  const saved = isSaved(product._id);
+  const [wishlistMessage, setWishlistMessage] = useState("");
+
+  async function handleToggleWishlist() {
+    setWishlistMessage("");
+    try {
+      await toggleProduct(product._id);
+    } catch (error) {
+      setWishlistMessage(
+        error instanceof Error ? error.message : "Could not update wishlist",
+      );
+    }
+  }
 
   async function handleAddToCart() {
     setCartMessage("");
@@ -45,7 +64,7 @@ export default function ProductCard({
   }
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
       <div className="aspect-square overflow-hidden bg-slate-100">
         {imageUrl && !imageFailed ? (
           <img
@@ -91,6 +110,16 @@ export default function ProductCard({
       </div>
 
       <div className="flex min-h-32 flex-col p-4">
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          disabled={wishlistBusyProductId === product._id}
+          aria-pressed={saved}
+          aria-label={`${saved ? "Remove from" : "Add to"} wishlist: ${product.name}`}
+          className="absolute right-3 top-3 z-10 rounded-full bg-white/95 p-2 text-2xl leading-none text-rose-600 shadow hover:bg-rose-50 disabled:opacity-50"
+        >
+          <span aria-hidden="true">{saved ? "♥" : "♡"}</span>
+        </button>
         {categoryName && (
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-600">
             {categoryName}
@@ -153,6 +182,11 @@ export default function ProductCard({
             role="status"
           >
             {cartMessage}
+          </p>
+        )}
+        {wishlistMessage && (
+          <p className="mt-2 text-sm text-rose-700" role="alert">
+            {wishlistMessage}
           </p>
         )}
       </div>

@@ -7,7 +7,7 @@ function createWishlistError(statusCode, message) {
   return error;
 }
 
-async function moveProductToCart(userId, productId) {
+async function moveProductToCart(userId, productId, variantId) {
   const wishlistItem = await Wishlist.findOne({
     user: userId,
     product: productId,
@@ -17,10 +17,14 @@ async function moveProductToCart(userId, productId) {
     throw createWishlistError(404, 'Wishlist item not found');
   }
 
-  const cart = await cartService.addProduct(userId, {
+  const cartItem = {
     productId,
     quantity: 1,
-  });
+  };
+  if (variantId) {
+    cartItem.variantId = variantId;
+  }
+  const cart = await cartService.addProduct(userId, cartItem);
 
   await Wishlist.findOneAndDelete({
     _id: wishlistItem._id,

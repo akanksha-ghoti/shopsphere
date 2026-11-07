@@ -94,7 +94,7 @@ describe('Wishlist API', () => {
     expect(Wishlist.find).toHaveBeenCalledWith({ user: userId });
     expect(Wishlist.find.mock.results[0].value.populate).toHaveBeenCalledWith(
       'product',
-      'name slug price images',
+      'name slug price stock images variants',
     );
   });
 
@@ -228,6 +228,35 @@ describe('Wishlist API', () => {
       user: userId,
       product: productId,
     });
+  });
+
+  it('passes a selected variant to the cart service when moving a product', async () => {
+    const variantId = '1234567890abcdef12345678';
+    Wishlist.findOne.mockResolvedValueOnce(wishlistEntry);
+
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer wishlist-test-user')
+      .send({ variantId });
+
+    expect(response.status).toBe(200);
+    expect(cartService.addProduct).toHaveBeenCalledWith(userId, {
+      productId,
+      variantId,
+      quantity: 1,
+    });
+    expect(Wishlist.findOneAndDelete).toHaveBeenCalled();
+  });
+
+  it('rejects invalid variant IDs without changing the wishlist', async () => {
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer wishlist-test-user')
+      .send({ variantId: 'not-an-object-id' });
+
+    expect(response.status).toBe(400);
+    expect(cartService.addProduct).not.toHaveBeenCalled();
+    expect(Wishlist.findOneAndDelete).not.toHaveBeenCalled();
   });
 
   it('returns not found when the product is not in this user wishlist', async () => {

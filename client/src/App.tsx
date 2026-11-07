@@ -2,11 +2,13 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import ProductDetails from "./pages/ProductDetails";
 import StoreHeader from "./components/StoreHeader";
+import Wishlist from "./pages/Wishlist";
 
 import { ProtectedRoute, AdminRoute } from "./routes/ProtectedRoute";
 
@@ -51,6 +53,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/cart" element={<Cart />} />
+      <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/products/:id" element={<ProductDetails />} />
       <Route path="/products" element={<Products />} />
 
@@ -80,7 +83,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppRoutes />
+          <WishlistProvider>
+            <AppRoutes />
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

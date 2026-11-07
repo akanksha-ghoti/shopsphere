@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 
 export default function StoreHeader() {
   const { user } = useAuth();
   const { cart } = useCart();
+  const { entries } = useWishlist();
   const itemCount = cart?.itemCount ?? 0;
+  const wishlistCount = entries.length;
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -20,6 +23,21 @@ export default function StoreHeader() {
           className="flex items-center gap-2 sm:gap-4"
           aria-label="Main navigation"
         >
+          <Link
+            to="/wishlist"
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-rose-50 hover:text-rose-700"
+            aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? "item" : "items"}`}
+          >
+            <span aria-hidden="true" className="text-xl leading-none">
+              ♥
+            </span>
+            <span className="hidden sm:inline">Wishlist</span>
+            {wishlistCount > 0 && (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 py-0.5 text-xs font-bold text-white">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
+          </Link>
           <Link
             to="/cart"
             className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700"
