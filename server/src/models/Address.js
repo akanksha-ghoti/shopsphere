@@ -74,7 +74,15 @@ const addressSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_document, address) {
+        delete address.slot;
+        return address;
+      },
+    },
+  },
 );
 
 addressSchema.index({ user: 1, slot: 1 }, { unique: true, name: 'address_user_slot_unique' });

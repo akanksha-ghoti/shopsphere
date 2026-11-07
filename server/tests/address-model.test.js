@@ -21,6 +21,7 @@ describe('Address model', () => {
 
     await expect(address.validate()).resolves.toBeUndefined();
     expect(address.isDefault).toBe(false);
+    expect(address.toJSON()).not.toHaveProperty('slot');
   });
 
   it.each([

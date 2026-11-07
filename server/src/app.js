@@ -8,6 +8,7 @@ const categoryRoutes = require('./routes/category.routes');
 const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const wishlistRoutes = require('./routes/wishlist.routes');
+const addressRoutes = require('./routes/address.routes');
 
 const logger = require('./middleware/logger');
 const corsMiddleware = require('./config/cors');
@@ -29,6 +30,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/addresses', addressRoutes);
 
 // Error handling
 app.use(notFound);
