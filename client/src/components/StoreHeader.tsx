@@ -39,6 +39,16 @@ export default function StoreHeader() {
             )}
           </Link>
           <Link
+            to="/addresses"
+            aria-label="Address book"
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700"
+          >
+            <span className="hidden sm:inline">Addresses</span>
+            <span className="sm:hidden" aria-hidden="true">
+              ⌖
+            </span>
+          </Link>
+          <Link
             to="/cart"
             className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700"
             aria-label={`Cart, ${itemCount} ${itemCount === 1 ? "item" : "items"}`}

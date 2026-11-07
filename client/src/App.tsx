@@ -9,6 +9,7 @@ import Cart from "./pages/Cart";
 import ProductDetails from "./pages/ProductDetails";
 import StoreHeader from "./components/StoreHeader";
 import Wishlist from "./pages/Wishlist";
+import Addresses from "./pages/Addresses";
 
 import { ProtectedRoute, AdminRoute } from "./routes/ProtectedRoute";
 
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/wishlist" element={<Wishlist />} />
+      <Route path="/addresses" element={<Addresses />} />
       <Route path="/products/:id" element={<ProductDetails />} />
       <Route path="/products" element={<Products />} />
 
