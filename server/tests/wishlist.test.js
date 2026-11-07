@@ -17,12 +17,17 @@ jest.mock('../src/models/Wishlist', () => ({
   findOneAndDelete: jest.fn(),
 }));
 
+jest.mock('../src/services/cart.service', () => ({
+  addProduct: jest.fn(),
+}));
+
 const request = require('supertest');
 const app = require('../src/app');
 const { verifyIdToken } = require('../src/config/firebaseAdmin');
 const User = require('../src/models/User');
 const Product = require('../src/models/Product');
 const Wishlist = require('../src/models/Wishlist');
+const cartService = require('../src/services/cart.service');
 
 const userId = '0123456789abcdef01234567';
 const otherUserId = '1123456789abcdef01234567';
@@ -55,6 +60,12 @@ describe('Wishlist API', () => {
     Wishlist.findOne.mockResolvedValue(null);
     Wishlist.create.mockResolvedValue(wishlistEntry);
     Wishlist.findOneAndDelete.mockResolvedValue(wishlistEntry);
+    cartService.addProduct.mockResolvedValue({
+      cart: { _id: 'cart-id' },
+      items: [],
+      subtotal: 99,
+      itemCount: 1,
+    });
   });
 
   it('requires authentication for wishlist endpoints', async () => {
@@ -62,9 +73,10 @@ describe('Wishlist API', () => {
       request(app).get('/api/wishlist'),
       request(app).post('/api/wishlist').send({ productId }),
       request(app).delete(`/api/wishlist/${productId}`),
+      request(app).post(`/api/wishlist/${productId}/move-to-cart`),
     ]);
 
-    expect(responses.map((response) => response.status)).toEqual([401, 401, 401]);
+    expect(responses.map((response) => response.status)).toEqual([401, 401, 401, 401]);
     expect(Wishlist.find).not.toHaveBeenCalled();
     expect(Wishlist.create).not.toHaveBeenCalled();
   });
@@ -185,5 +197,92 @@ describe('Wishlist API', () => {
 
     expect(response.status).toBe(400);
     expect(Wishlist.findOneAndDelete).not.toHaveBeenCalled();
+  });
+
+  it('moves a wishlist product to the authenticated user cart then removes the entry', async () => {
+    Wishlist.findOne.mockResolvedValueOnce(wishlistEntry);
+
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer first-user');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      success: true,
+      message: 'Product moved to cart',
+      data: {
+        productId,
+        cart: { subtotal: 99, itemCount: 1 },
+      },
+    });
+    expect(Wishlist.findOne).toHaveBeenCalledWith({
+      user: userId,
+      product: productId,
+    });
+    expect(cartService.addProduct).toHaveBeenCalledWith(userId, {
+      productId,
+      quantity: 1,
+    });
+    expect(Wishlist.findOneAndDelete).toHaveBeenCalledWith({
+      _id: wishlistEntry._id,
+      user: userId,
+      product: productId,
+    });
+  });
+
+  it('returns not found when the product is not in this user wishlist', async () => {
+    Wishlist.findOne.mockResolvedValueOnce(null);
+
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer other-user');
+
+    expect(response.status).toBe(404);
+    expect(Wishlist.findOne).toHaveBeenCalledWith({
+      user: otherUserId,
+      product: productId,
+    });
+    expect(cartService.addProduct).not.toHaveBeenCalled();
+    expect(Wishlist.findOneAndDelete).not.toHaveBeenCalled();
+  });
+
+  it('preserves the wishlist entry when cart stock validation fails', async () => {
+    Wishlist.findOne.mockResolvedValueOnce(wishlistEntry);
+    cartService.addProduct.mockRejectedValueOnce(
+      Object.assign(new Error('Requested quantity exceeds available stock'), {
+        statusCode: 409,
+      }),
+    );
+
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer first-user');
+
+    expect(response.status).toBe(409);
+    expect(response.body.message).toMatch(/available stock/i);
+    expect(Wishlist.findOneAndDelete).not.toHaveBeenCalled();
+  });
+
+  it('preserves the wishlist entry when adding to cart fails', async () => {
+    Wishlist.findOne.mockResolvedValueOnce(wishlistEntry);
+    cartService.addProduct.mockRejectedValueOnce(
+      Object.assign(new Error('Cart service unavailable'), { statusCode: 503 }),
+    );
+
+    const response = await request(app)
+      .post(`/api/wishlist/${productId}/move-to-cart`)
+      .set('Authorization', 'Bearer first-user');
+
+    expect(response.status).toBe(503);
+    expect(Wishlist.findOneAndDelete).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid product IDs for move-to-cart', async () => {
+    const response = await request(app)
+      .post('/api/wishlist/not-an-id/move-to-cart')
+      .set('Authorization', 'Bearer first-user');
+
+    expect(response.status).toBe(400);
+    expect(cartService.addProduct).not.toHaveBeenCalled();
   });
 });

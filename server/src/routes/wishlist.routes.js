@@ -9,6 +9,7 @@ const {
 const {
   addToWishlist,
   getWishlist,
+  moveToCart,
   removeFromWishlist,
 } = require('../controllers/wishlist.controller');
 
@@ -18,6 +19,7 @@ router.use(auth);
 
 router.get('/', getWishlist);
 router.post('/', validate(addWishlistProductSchema), addToWishlist);
+router.post('/:productId/move-to-cart', validate(wishlistProductParamsSchema), moveToCart);
 router.delete('/:productId', validate(wishlistProductParamsSchema), removeFromWishlist);
 
 module.exports = router;

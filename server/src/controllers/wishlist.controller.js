@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const Wishlist = require('../models/Wishlist');
+const wishlistService = require('../services/wishlist.service');
 const { successResponse } = require('../utils/apiResponse');
 
 function createError(statusCode, message) {
@@ -105,8 +106,22 @@ async function removeFromWishlist(req, res, next) {
   }
 }
 
+async function moveToCart(req, res, next) {
+  try {
+    const userId = await getAuthenticatedUserId(req);
+    const { productId } = req.validatedData.params;
+    assertProductId(productId);
+
+    const result = await wishlistService.moveProductToCart(userId, productId);
+    return successResponse(res, result, 'Product moved to cart');
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   addToWishlist,
   getWishlist,
+  moveToCart,
   removeFromWishlist,
 };
