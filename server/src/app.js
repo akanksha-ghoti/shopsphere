@@ -9,6 +9,7 @@ const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const wishlistRoutes = require('./routes/wishlist.routes');
 const addressRoutes = require('./routes/address.routes');
+const checkoutRoutes = require('./routes/checkout.routes');
 
 const logger = require('./middleware/logger');
 const corsMiddleware = require('./config/cors');
@@ -31,6 +32,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/checkout', checkoutRoutes);
 
 // Error handling
 app.use(notFound);
