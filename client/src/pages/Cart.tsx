@@ -224,6 +224,12 @@ export default function Cart() {
               <p className="mt-3 text-xs text-slate-500">
                 Shipping and taxes are calculated at checkout.
               </p>
+              <Link
+                to="/checkout"
+                className="mt-5 inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+              >
+                Continue to checkout
+              </Link>
             </aside>
           </div>
         )}

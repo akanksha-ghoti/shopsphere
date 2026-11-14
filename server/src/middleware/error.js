@@ -1,24 +1,23 @@
 const notFound = (req, res, next) => {
-res.status(404).json({
-success: false,
-message: `Route not found: ${req.method} ${req.originalUrl}`,
-});
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
 };
 
 const errorHandler = (err, req, res, next) => {
-const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || 500;
 
-console.error('Application error:', err.message);
+  console.error('Application error:', err.message);
 
-res.status(statusCode).json({
-success: false,
-message: statusCode >= 500
-? 'Internal Server Error'
-: err.message,
-});
+  res.status(statusCode).json({
+    success: false,
+    message: statusCode >= 500 ? 'Internal Server Error' : err.message,
+    ...(statusCode < 500 && err.code ? { code: err.code } : {}),
+  });
 };
 
 module.exports = {
-notFound,
-errorHandler,
+  notFound,
+  errorHandler,
 };

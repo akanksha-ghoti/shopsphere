@@ -3,7 +3,10 @@ const { z } = require('zod');
 
 const auth = require('../middleware/auth');
 const validate = require('../middleware/validate');
-const { createCheckoutSummary } = require('../controllers/checkout.controller');
+const {
+  createCheckoutSession,
+  createCheckoutSummary,
+} = require('../controllers/checkout.controller');
 
 const checkoutSummarySchema = z.object({
   body: z
@@ -17,5 +20,6 @@ const router = express.Router();
 
 router.use(auth);
 router.post('/summary', validate(checkoutSummarySchema), createCheckoutSummary);
+router.post('/sessions', validate(checkoutSummarySchema), createCheckoutSession);
 
 module.exports = router;

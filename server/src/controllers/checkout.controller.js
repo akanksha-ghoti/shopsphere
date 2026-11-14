@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const checkoutService = require('../services/checkout.service');
+const checkoutSessionService = require('../services/checkoutSession.service');
 const { successResponse } = require('../utils/apiResponse');
 
 async function getAuthenticatedUserId(req) {
@@ -30,4 +31,17 @@ async function createCheckoutSummary(req, res, next) {
   }
 }
 
-module.exports = { createCheckoutSummary };
+async function createCheckoutSession(req, res, next) {
+  try {
+    const userId = await getAuthenticatedUserId(req);
+    const session = await checkoutSessionService.createSession(
+      userId,
+      req.validatedData.body.addressId,
+    );
+    return successResponse(res, session, 'Checkout session created successfully', 201);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { createCheckoutSession, createCheckoutSummary };

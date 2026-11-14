@@ -10,6 +10,7 @@ import ProductDetails from "./pages/ProductDetails";
 import StoreHeader from "./components/StoreHeader";
 import Wishlist from "./pages/Wishlist";
 import Addresses from "./pages/Addresses";
+import Checkout from "./pages/Checkout";
 
 import { ProtectedRoute, AdminRoute } from "./routes/ProtectedRoute";
 
@@ -61,6 +62,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
+        <Route path="/checkout" element={<Checkout />} />
       </Route>
 
       <Route element={<AdminRoute />}>

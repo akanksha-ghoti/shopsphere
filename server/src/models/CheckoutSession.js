@@ -10,10 +10,16 @@ const checkoutItemSchema = new mongoose.Schema(
       images: { type: [String], default: [] },
     },
     variant: {
-      id: { type: mongoose.Schema.Types.ObjectId, default: null },
-      size: { type: String, default: null },
-      color: { type: String, default: null },
-      sku: { type: String, default: null },
+      type: new mongoose.Schema(
+        {
+          id: { type: mongoose.Schema.Types.ObjectId, required: true },
+          size: { type: String, required: true },
+          color: { type: String, required: true },
+          sku: { type: String, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
     },
     quantity: { type: Number, required: true, min: 1, max: 99 },
     unitPrice: { type: Number, required: true, min: 0 },

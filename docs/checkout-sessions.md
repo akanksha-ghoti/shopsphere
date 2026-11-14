@@ -5,6 +5,13 @@ address they own. The service stores a server-generated snapshot of item
 quantities, current prices, shipping, tax, and totals. Client-provided snapshot
 or pricing values are not accepted.
 
+The authenticated `POST /api/checkout/sessions` endpoint accepts only an
+`addressId` and returns the session ID, expiry, and server-generated snapshot.
+The checkout page uses it to confirm the displayed order immediately before
+entering its payment step.
+The current application has no payment gateway integration; the page confirms
+the session is ready without submitting a charge.
+
 Sessions expire after 15 minutes by default. Configure
 `CHECKOUT_SESSION_TTL_MINUTES` to an integer from 1 to 60 to change the lifetime.
 MongoDB's TTL index removes expired records asynchronously; application

@@ -44,6 +44,7 @@ describe('CheckoutSession model', () => {
       },
     });
 
+    expect(session.snapshot.items[0].variant).toBeNull();
     await expect(session.validate()).resolves.toBeUndefined();
   });
 
